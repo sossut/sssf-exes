@@ -4,9 +4,9 @@ import morgan from 'morgan';
 import helmet from 'helmet';
 import cors from 'cors';
 
-import { notFound, errorHandler } from './middlewares';
+import {notFound, errorHandler} from './middlewares';
 import api from './api';
-import testApi from './test-api';
+// import testApi from './test-api';
 import MessageResponse from './interfaces/MessageResponse';
 
 const app = express();
@@ -24,7 +24,7 @@ app.get<{}, MessageResponse>('/', (req, res) => {
 
 app.use('/api/v1', api);
 
-app.use('/test-api', testApi);
+// app.use('/test-api', testApi);
 
 app.use(notFound);
 app.use(errorHandler);

@@ -32,6 +32,18 @@ const getUser = async (userId: string): Promise<User> => {
 };
 
 // TODO: create addUser function
+const addUser = async (user: PostUser) => {
+  const [headers] = await promisePool.execute<ResultSetHeader>(
+    `INSERT INTO sssf_user (user_name, email, password)
+    VALUES (?, ?, ?)`,
+    [user.user_name, user.email, user.password]
+  );
+  console.log(headers);
+  if (headers.affectedRows === 0) {
+    throw new CustomError('Could not add user', 500);
+  }
+  return headers.insertId;
+};
 
 const updateUser = async (data: PutUser, userId: number): Promise<boolean> => {
   const sql = promisePool.format('UPDATE sssf_user SET ? WHERE user_id = ?;', [
@@ -46,6 +58,16 @@ const updateUser = async (data: PutUser, userId: number): Promise<boolean> => {
 };
 
 // TODO: create deleteUser function
+const deleteUser = async (id: number): Promise<boolean> => {
+  const sql = 'DELETE FROM sssf_user WHERE user_id = ?';
+  const params = [id];
+  const [headers] = await promisePool.execute<ResultSetHeader>(sql, params);
+  console.log('model');
+  if (headers.affectedRows === 0) {
+    throw new CustomError('User not found', 404);
+  }
+  return true;
+};
 
 const getUserLogin = async (email: string): Promise<User> => {
   const [rows] = await promisePool.execute<GetUser[]>(

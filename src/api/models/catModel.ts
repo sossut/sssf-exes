@@ -2,6 +2,7 @@ import {promisePool} from '../../database/db';
 import CustomError from '../../classes/CustomError';
 import {ResultSetHeader, RowDataPacket} from 'mysql2';
 import {Cat, GetCat, PostCat, PutCat} from '../../interfaces/Cat';
+import {User} from '../../interfaces/User';
 
 const getAllCats = async (): Promise<Cat[]> => {
   const [rows] = await promisePool.execute<GetCat[]>(
@@ -25,6 +26,25 @@ const getAllCats = async (): Promise<Cat[]> => {
 };
 
 // TODO: create getCat function to get single cat
+
+const getCat = async (catId: number) => {
+  const [rows] = await promisePool.execute<GetCat[]>(
+    `
+    SELECT cat_id, cat_name, weight, filename, birthdate, ST_X(coords) as lat, ST_Y(coords) as lng,
+    JSON_OBJECT('user_id', sssf_user.user_id, 'user_name', sssf_user.user_name) AS owner 
+	  FROM sssf_cat 
+	  JOIN sssf_user 
+    ON sssf_cat.owner = sssf_user.user_id
+    WHERE cat_id = ?`,
+    [catId]
+  );
+  if (rows.length === 0) {
+    throw new CustomError('Cat not found', 404);
+  }
+  return rows[0] as Cat;
+};
+
+const getCatsByUser = async () => {};
 
 const addCat = async (data: PostCat): Promise<number> => {
   const [headers] = await promisePool.execute<ResultSetHeader>(
@@ -53,6 +73,27 @@ const addCat = async (data: PostCat): Promise<number> => {
 // if role is admin, update any cat
 // if role is user, update only cats owned by user
 
+const updateCat = async (
+  cat: PutCat,
+  catId: number,
+  owner: number,
+  role: string
+): Promise<boolean> => {
+  let sql = 'UPDATE sssf_cat SET ? WHERE cat_id = ? AND owner = ?';
+  let params = [cat, catId, owner];
+  if (role === 'admin') {
+    sql = 'UPDATE sssf_cat SET ? WHERE cat_id = ?';
+    params = [cat, catId];
+  }
+  console.log(sql, params);
+  const kakka = promisePool.format(sql, params);
+  const [headers] = await promisePool.execute<ResultSetHeader>(kakka);
+  if (headers.affectedRows === 0) {
+    throw new CustomError('Cat not found', 404);
+  }
+  return true;
+};
+
 const deleteCat = async (catId: number): Promise<boolean> => {
   const [headers] = await promisePool.execute<ResultSetHeader>(
     `
@@ -67,4 +108,4 @@ const deleteCat = async (catId: number): Promise<boolean> => {
   return true;
 };
 
-export {getAllCats, getCat, addCat, updateCat, deleteCat};
+export {getAllCats, getCat, getCatsByUser, addCat, updateCat, deleteCat};

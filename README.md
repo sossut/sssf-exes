@@ -84,3 +84,4 @@ INSERT INTO `sssf_user` (`user_id`, `user_name`, `email`, `password`, `role`) VA
 (37, 'Test User', 'john@metropolia.fi', '$2a$10$5RzpyimIeuzNqW7G8seBiOzBiWBvrSWroDomxMa0HzU6K2ddSgixS', 'user');
 ```
 # sssf-exes
+# sssf-exes
